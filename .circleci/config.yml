@@ -7,7 +7,7 @@ jobs:
     steps:
       - checkout
       - add_ssh_keys:
-          fingerprints: ["06:7c:db:71:49:2f:03:36:60:08:d2:fd:33:6f:17:d3"] # You can get this ID in the section where you registered the SSH Key
+          fingerprints: ["83:f3:3b:d2:3a:ce:62:78:7c:43:83:1a:9a:1c:09:30"]
       - run:
           name: Install dependencies
           command: |
@@ -15,9 +15,27 @@ jobs:
       - run:
           name: Configure server
           command: |
-            ansible-playbook -i inventory.txt playbook.yml
+            ansible-playbook -i inventory main-remote.yml
+  smoke_test:
+    docker:
+      - image: alpine:latest
+    steps:
+      - run: apk add --update curl
+      - run:
+          name: smoke test.
+          command: |
+            URL="https://blog.udacity.com/"
+            if curl -s --head ${URL} # test if blog.udacity. com exists
+            then
+              return 0
+            else
+              return 1
+            fi
 
 workflows:
   my_workflow:
     jobs:
       - configure_infrastructure
+      - smoke_test:
+          requires:
+            - configure_infrastructure
